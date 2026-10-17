@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full w-full overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WEBIFY UNIVERSE 3D - Interactive Cosmic Exploration</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        space: { dark: '#03050B', navy: '#081225', blue: '#3D8BFF', cyan: '#53E0FF', violet: '#9875FF' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #03050B; color: #fff; user-select: none; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .glass-panel {
+            background: rgba(8, 18, 37, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(83, 224, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .glass-button {
+            background: rgba(61, 139, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(83, 224, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-button:hover {
+            background: rgba(83, 224, 255, 0.3);
+            border-color: rgba(83, 224, 255, 0.8);
+            box-shadow: 0 0 15px rgba(83, 224, 255, 0.4);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(3, 5, 11, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(83, 224, 255, 0.3); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(83, 224, 255, 0.6); }
+        
+        /* Pulse Animation */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 8px rgba(83, 224, 255, 0.4)); }
+            50% { opacity: 0.9; filter: drop-shadow(0 0 20px rgba(83, 224, 255, 0.8)); }
+        }
+        .pulse-glow { animation: pulse-glow 3s infinite ease-in-out; }
+    </style>
+
+    <!-- Three.js and OrbitControls via Import Maps -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body class="h-full w-full overflow-hidden bg-space-dark text-slate-100 antialiased selection:bg-space-cyan selection:text-black">
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container" class="absolute inset-0 z-0 h-full w-full cursor-grab active:cursor-grabbing"></div>
+
+    <!-- WebGL Fallback Overlay -->
+    <div id="webgl-error" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-space-dark p-6 text-center">
+        <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-4"></i>
+        <h1 class="text-2xl font-bold font-orbitron text-red-400 mb-2">WebGL Not Supported</h1>
+        <p class="max-w-md text-slate-300 mb-6">Your browser or hardware graphics acceleration does not support WebGL 3D rendering. Please enable hardware acceleration or use a modern browser like Chrome, Edge, or Firefox.</p>
+    </div>
+
+    <!-- LANDING SCREEN OVERLAY -->
+    <div id="landing-screen" class="absolute inset-0 z-40 flex flex-col justify-between p-8 md:p-16 transition-opacity duration-1000 bg-gradient-to-b from-space-dark/80 via-transparent to-space-dark/90">
+        <!-- Top Branding Header -->
+        <div class="flex justify-between items-center w-full">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-space-blue to-space-cyan flex items-center justify-center shadow-[0_0_15px_rgba(83,224,255,0.5)]">
+                    <i data-lucide="globe" class="w-5 h-5 text-space-dark"></i>
+                </div>
+                <span class="font-orbitron font-bold text-lg tracking-wider text-space-cyan">WEBIFY UNIVERSE 3D</span>
+            </div>
+            <div class="text-xs tracking-widest text-slate-400 font-mono">
+                CREATED BY: <span class="text-space-cyan font-bold">WEBIFY STUDIO</span>
+            </div>
+        </div>
+
+        <!-- Center Hero Text -->
+        <div class="max-w-3xl my-auto space-y-6">
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-space-blue/20 text-space-cyan border border-space-cyan/30 backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-space-cyan mr-2 animate-ping"></span>
+                INTERACTIVE 3D COSMIC SIMULATOR
+            </div>
+            <h1 class="font-orbitron text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-space-cyan drop-shadow-lg">
+                Explore Beyond.<br><span class="text-space-blue">Discover Everything.</span>
+            </h1>
+            <p class="text-base sm:text-xl text-slate-300 font-light max-w-xl leading-relaxed">
+                Seamless multiscale visualization from Earth & Moon to the edge of the Observable Universe. Experience interactive cosmic space exploration in real-time 3D.
+            </p>
+            <div class="pt-4 flex flex-wrap gap-4 items-center">
+                <button id="btn-enter" class="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-space-blue to-space-cyan text-space-dark font-orbitron font-bold text-base sm:text-lg tracking-wider shadow-[0_0_30px_rgba(61,139,255,0.6)] hover:shadow-[0_0_50px_rgba(83,224,255,0.9)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center space-x-3">
+                    <span>ENTER THE UNIVERSE</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Landing Footer -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-800/60 text-xs font-mono text-slate-400">
+            <div><span class="text-space-cyan font-bold block">7 COSMIC SCALES</span> Earth to Observable Universe</div>
+            <div><span class="text-space-cyan font-bold block">REAL-TIME SHADERS</span> Procedural planet & galaxy visuals</div>
+            <div><span class="text-space-cyan font-bold block">FREE FLIGHT MODE</span> WASD & Touch Navigation</div>
+            <div><span class="text-space-cyan font-bold block">SCIENTIFIC DATA</span> Astronomical scale metrics</div>
+        </div>
+    </div>
+
+    <!-- MAIN HUD & INTERACTION UI (Hidden until Enter) -->
+    <div id="main-hud" class="opacity-0 pointer-events-none transition-opacity duration-700 absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6">
+        
+        <!-- TOP HUD BAR -->
+        <header class="flex justify-between items-start pointer-events-auto">
+            <!-- Brand & Scale Banner -->
+            <div class="glass-panel rounded-xl p-3 sm:px-5 sm:py-3 flex items-center space-x-4">
+                <button id="btn-open-nav" class="p-2 rounded-lg bg-space-blue/20 hover:bg-space-blue/40 text-space-cyan border border-space-cyan/30 transition-colors" title="Open Navigator">
+                    <i data-lucide="compass" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h1 class="font-orbitron font-bold text-sm sm:text-base text-slate-100 flex items-center space-x-2">
+                        <span>WEBIFY UNIVERSE</span>
+                        <span class="text-xs px-2 py-0.5 rounded bg-space-cyan/20 text-space-cyan border border-space-cyan/30 font-mono">3D</span>
+                    </h1>
+                    <div id="current-scale-tag" class="text-xs font-mono text-space-cyan flex items-center space-x-1 mt-0.5">
+                        <i data-lucide="layers" class="w-3 h-3"></i>
+                        <span id="scale-name">SCALE 1: EARTH & MOON</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Quick Actions -->
+            <div class="flex items-center space-x-2">
+                <button id="btn-toggle-flight" class="glass-button px-3 py-2 rounded-xl text-xs font-orbitron font-semibold text-space-cyan flex items-center space-x-2" title="Toggle Free Flight Mode">
+                    <i data-lucide="plane" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">FREE FLIGHT</span>
+                </button>
+                <button id="btn-reset-view" class="glass-button p-2.5 rounded-xl text-slate-200 hover:text-space-cyan" title="Reset Camera View">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+                <button id="btn-toggle-sound" class="glass-button p-2.5 rounded-xl text-slate-200 hover:text-space-cyan" title="Toggle Ambient Audio">
+                    <i data-lucide="volume-x" id="sound-icon" class="w-4 h-4"></i>
+                </button>
+                <button id="btn-toggle-hud" class="glass-button p-2.5 rounded-xl text-slate-200 hover:text-space-cyan" title="Toggle HUD Display">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CENTER CROSSHAIR (For Free Flight Mode) -->
+        <div id="flight-crosshair" class="hidden absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div class="w-4 h-4 border-2 border-space-cyan/60 rounded-full flex items-center justify-center">
+                <div class="w-1 h-1 bg-space-cyan rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE OBJECT INFO PANEL -->
+        <aside id="info-panel" class="translate-x-full opacity-0 transition-all duration-500 pointer-events-auto absolute right-4 top-20 bottom-20 w-80 sm:w-96 glass-panel rounded-2xl p-5 flex flex-col justify-between overflow-y-auto">
+            <div>
+                <!-- Panel Header -->
+                <div class="flex justify-between items-start pb-4 border-b border-slate-700/60">
+                    <div>
+                        <span id="obj-category" class="text-[10px] font-mono tracking-widest text-space-cyan uppercase px-2 py-0.5 rounded bg-space-cyan/10 border border-space-cyan/20">PLANET</span>
+                        <h2 id="obj-title" class="font-orbitron font-bold text-2xl text-white mt-1">Earth</h2>
+                    </div>
+                    <button id="btn-close-info" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-3 my-4 font-mono text-xs">
+                    <div class="bg-space-navy/50 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 text-[10px]">DIAMETER</div>
+                        <div id="obj-diameter" class="text-slate-100 font-semibold mt-0.5">12,742 km</div>
+                    </div>
+                    <div class="bg-space-navy/50 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 text-[10px]">DISTANCE</div>
+                        <div id="obj-distance" class="text-slate-100 font-semibold mt-0.5">1.00 AU</div>
+                    </div>
+                    <div class="bg-space-navy/50 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 text-[10px]">ROTATION</div>
+                        <div id="obj-rotation" class="text-slate-100 font-semibold mt-0.5">23.9 Hours</div>
+                    </div>
+                    <div class="bg-space-navy/50 p-2.5 rounded-lg border border-slate-800">
+                        <div class="text-slate-400 text-[10px]">ORBIT PERIOD</div>
+                        <div id="obj-orbit" class="text-slate-100 font-semibold mt-0.5">365.25 Days</div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-semibold text-slate-300 font-orbitron tracking-wider">OVERVIEW</h3>
+                    <p id="obj-desc" class="text-xs text-slate-300 leading-relaxed font-light">
+                        Earth is the third planet from the Sun and the only astronomical object known to harbor life.
+                    </p>
+                </div>
+
+                <!-- Atmospheric / Physical Composition -->
+                <div class="mt-4 space-y-2">
+                    <h3 class="text-xs font-semibold text-slate-300 font-orbitron tracking-wider">PRIMARY COMPOSITION</h3>
+                    <div id="obj-composition" class="text-xs font-mono text-space-cyan bg-space-dark/60 p-2.5 rounded-lg border border-space-blue/30">
+                        78% Nitrogen, 21% Oxygen, 1% Argon
+                    </div>
+                </div>
+
+                <!-- Data Verification Tag -->
+                <div class="mt-4 flex items-center space-x-2 text-[10px] font-mono text-slate-400">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>DATA STATUS: <span id="obj-status" class="text-emerald-400 font-semibold">VERIFIED SCIENTIFIC DATA</span></span>
+                </div>
+            </div>
+
+            <!-- Focus Actions -->
+            <div class="pt-4 border-t border-slate-700/60 flex space-x-2">
+                <button id="btn-focus-obj" class="flex-1 py-2.5 rounded-xl bg-space-blue hover:bg-blue-600 text-white font-orbitron text-xs font-bold transition-colors flex items-center justify-center space-x-2 shadow-[0_0_15px_rgba(61,139,255,0.4)]">
+                    <i data-lucide="focus" class="w-4 h-4"></i>
+                    <span>FOCUS OBJECT</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- BOTTOM HUD CONTROLS & SCALE NAVIGATOR BAR -->
+        <footer class="pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-3 w-full">
+            
+            <!-- Scale Quick Selector Chips -->
+            <div class="glass-panel p-1.5 rounded-2xl flex items-center overflow-x-auto max-w-full space-x-1 font-mono text-[11px]">
+                <button data-scale="0" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap bg-space-blue text-white font-semibold">1. Earth & Moon</button>
+                <button data-scale="1" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">2. Solar System</button>
+                <button data-scale="2" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">3. Interstellar</button>
+                <button data-scale="3" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">4. Milky Way</button>
+                <button data-scale="4" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">5. Local Group</button>
+                <button data-scale="5" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">6. Cosmic Web</button>
+                <button data-scale="6" class="scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50">7. Observable Universe</button>
+            </div>
+
+            <!-- Simulation Speed & View Toggles -->
+            <div class="glass-panel p-2 rounded-xl flex items-center space-x-3 font-mono text-xs">
+                <!-- Play/Pause -->
+                <button id="btn-play-pause" class="p-1.5 rounded-lg bg-slate-800 text-space-cyan hover:bg-slate-700" title="Pause / Play Simulation">
+                    <i data-lucide="pause" id="play-icon" class="w-4 h-4"></i>
+                </button>
+                <!-- Speed Slider -->
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="gauge" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <input type="range" id="time-speed" min="0" max="1000" value="1" class="w-20 accent-space-cyan h-1 bg-slate-700 rounded cursor-pointer">
+                    <span id="speed-val" class="w-10 text-space-cyan font-bold">1x</span>
+                </div>
+                <div class="h-4 w-px bg-slate-700"></div>
+                <!-- Orbit lines toggle -->
+                <button id="btn-toggle-orbits" class="p-1.5 rounded-lg bg-space-cyan/20 text-space-cyan border border-space-cyan/30 hover:bg-space-cyan/30" title="Toggle Orbit Lines">
+                    <i data-lucide="orbit" class="w-4 h-4"></i>
+                </button>
+                <!-- FPS Counter -->
+                <div class="text-[10px] text-slate-400 hidden sm:block">
+                    <span id="fps-counter" class="text-emerald-400 font-bold">60</span> FPS
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- COSMIC NAVIGATOR DRAWER (Slide-out menu) -->
+    <div id="nav-drawer" class="-translate-x-full transition-transform duration-500 absolute inset-y-0 left-0 z-30 w-80 sm:w-96 glass-panel p-6 flex flex-col justify-between border-r border-space-cyan/20">
+        <div>
+            <!-- Drawer Header -->
+            <div class="flex justify-between items-center pb-4 border-b border-slate-700">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="compass" class="w-5 h-5 text-space-cyan"></i>
+                    <h2 class="font-orbitron font-bold text-lg text-white">COSMIC NAVIGATOR</h2>
+                </div>
+                <button id="btn-close-nav" class="p-1 rounded-lg text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="my-4 relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" id="search-input" placeholder="Search celestial objects..." class="w-full bg-space-dark/80 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-space-cyan font-mono">
+            </div>
+
+            <!-- Navigation Categories & Objects List -->
+            <div id="nav-objects-list" class="space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
+                <!-- Categories populated by JS -->
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex justify-between items-center">
+            <span>WEBIFY UNIVERSE 3D v1.0</span>
+            <span class="text-space-cyan">WEBIFY STUDIO</span>
+        </div>
+    </div>
+
+    <!-- TOUCH CONTROLS OVERLAY FOR MOBILE FREE FLIGHT -->
+    <div id="mobile-controls" class="hidden absolute bottom-20 left-4 right-4 z-20 pointer-events-auto flex justify-between items-end sm:hidden">
+        <div id="joystick-zone" class="w-28 h-28 rounded-full border border-space-cyan/40 bg-space-dark/40 backdrop-blur-md relative flex items-center justify-center">
+            <div id="joystick-knob" class="w-10 h-10 rounded-full bg-space-cyan/60 border border-white"></div>
+        </div>
+        <div class="flex flex-col space-y-2">
+            <button id="btn-mobile-up" class="w-12 h-12 rounded-xl glass-panel flex items-center justify-center text-space-cyan font-bold">▲</button>
+            <button id="btn-mobile-down" class="w-12 h-12 rounded-xl glass-panel flex items-center justify-center text-space-cyan font-bold">▼</button>
+        </div>
+    </div>
+
+    <!-- MAIN THREE.JS APPLICATION CODE -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        /* -------------------------------------------------------------------------- */
+        /*                           CELESTIAL DATA ENGINE                            */
+        /* -------------------------------------------------------------------------- */
+        const CELESTIAL_DATA = [
+            // SCALE 1: EARTH & MOON
+            {
+                id: 'earth',
+                name: 'Earth',
+                category: 'Terrestrial Planet',
+                scaleIndex: 0,
+                diameter: '12,742 km',
+                distance: '1.00 AU (149.6M km)',
+                rotation: '23.93 Hours',
+                orbit: '365.25 Days',
+                composition: '78% N2, 21% O2, 1% Ar',
+                desc: 'Earth is the third planet from the Sun and the only known planet to harbor life. It features liquid water oceans, a dynamic atmosphere, and a protective magnetic field.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(0, 0, 0),
+                radius: 2.2,
+                color: 0x3d8bff
+            },
+            {
+                id: 'moon',
+                name: 'The Moon',
+                category: 'Natural Satellite',
+                scaleIndex: 0,
+                diameter: '3,474 km',
+                distance: '384,400 km from Earth',
+                rotation: '27.3 Days (Tidally Locked)',
+                orbit: '27.3 Days',
+                composition: 'Silicate Rock, Basalt, Anorthosite',
+                desc: 'Earth\'s only natural satellite. It is in synchronous rotation with Earth, always showing the same face.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(8, 0, 0),
+                radius: 0.6,
+                color: 0xcccccc
+            },
+
+            // SCALE 2: SOLAR SYSTEM
+            {
+                id: 'sun',
+                name: 'The Sun',
+                category: 'Yellow Dwarf Star (G2V)',
+                scaleIndex: 1,
+                diameter: '1,392,700 km',
+                distance: '0.00 AU (Galactic Center: 26,000 ly)',
+                rotation: '25-35 Days',
+                orbit: '230 Million Years (Galactic Orbit)',
+                composition: '73% Hydrogen, 25% Helium',
+                desc: 'The star at the center of the Solar System. It contains 99.86% of the mass in the Solar System.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(0, 0, 0),
+                radius: 8.0,
+                color: 0xffaa00
+            },
+            {
+                id: 'mercury',
+                name: 'Mercury',
+                category: 'Terrestrial Planet',
+                scaleIndex: 1,
+                diameter: '4,879 km',
+                distance: '0.39 AU',
+                rotation: '58.6 Days',
+                orbit: '88 Days',
+                composition: 'Iron Core, Silicate Crust',
+                desc: 'The smallest planet in the Solar System and closest to the Sun.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(14, 0, 0),
+                radius: 0.8,
+                color: 0xaaaaaa
+            },
+            {
+                id: 'venus',
+                name: 'Venus',
+                category: 'Terrestrial Planet',
+                scaleIndex: 1,
+                diameter: '12,104 km',
+                distance: '0.72 AU',
+                rotation: '243 Days (Retrograde)',
+                orbit: '225 Days',
+                composition: '96.5% CO2, 3.5% N2',
+                desc: 'Second planet from the Sun with a runaway greenhouse atmosphere creating surface temperatures above 460°C.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(22, 0, 0),
+                radius: 1.8,
+                color: 0xe3bb76
+            },
+            {
+                id: 'mars',
+                name: 'Mars',
+                category: 'Terrestrial Planet',
+                scaleIndex: 1,
+                diameter: '6,779 km',
+                distance: '1.52 AU',
+                rotation: '24.6 Hours',
+                orbit: '687 Days',
+                composition: '95% CO2, Iron Oxide Surface',
+                desc: 'The Red Planet, home to Olympus Mons (largest volcano) and ancient water valleys.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(38, 0, 0),
+                radius: 1.2,
+                color: 0xdd4422
+            },
+            {
+                id: 'jupiter',
+                name: 'Jupiter',
+                category: 'Gas Giant',
+                scaleIndex: 1,
+                diameter: '139,820 km',
+                distance: '5.20 AU',
+                rotation: '9.9 Hours',
+                orbit: '11.86 Years',
+                composition: '90% Hydrogen, 10% Helium',
+                desc: 'The largest planet in our Solar System, featuring the famous Great Red Spot anticyclonic storm.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(60, 0, 0),
+                radius: 4.5,
+                color: 0xd8ca9d
+            },
+            {
+                id: 'saturn',
+                name: 'Saturn',
+                category: 'Gas Giant',
+                scaleIndex: 1,
+                diameter: '116,460 km',
+                distance: '9.58 AU',
+                rotation: '10.7 Hours',
+                orbit: '29.45 Years',
+                composition: '96% Hydrogen, 3% Helium',
+                desc: 'Famous for its prominent, complex planetary ring system composed mainly of ice particles and dust.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(85, 0, 0),
+                radius: 3.8,
+                color: 0xead6b8
+            },
+            {
+                id: 'uranus',
+                name: 'Uranus',
+                category: 'Ice Giant',
+                scaleIndex: 1,
+                diameter: '50,724 km',
+                distance: '19.22 AU',
+                rotation: '17.2 Hours (Extreme Tilt: 97.8°)',
+                orbit: '84 Years',
+                composition: 'Water, Ammonia, Methane Ice',
+                desc: 'An ice giant with a dramatic axial tilt, causing extreme seasonal variations.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(115, 0, 0),
+                radius: 2.8,
+                color: 0x75c2cc
+            },
+            {
+                id: 'neptune',
+                name: 'Neptune',
+                category: 'Ice Giant',
+                scaleIndex: 1,
+                diameter: '49,244 km',
+                distance: '30.05 AU',
+                rotation: '16.1 Hours',
+                orbit: '164.8 Years',
+                composition: 'Hydrogen, Helium, Methane',
+                desc: 'The most distant major planet in the Solar System, known for extreme supersonic wind speeds.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(145, 0, 0),
+                radius: 2.7,
+                color: 0x274687
+            },
+
+            // SCALE 3: INTERSTELLAR NEIGHBORHOOD
+            {
+                id: 'alpha-centauri',
+                name: 'Alpha Centauri System',
+                category: 'Triple Star System',
+                scaleIndex: 2,
+                diameter: '1.2 Sun Diameters',
+                distance: '4.37 Light-Years',
+                rotation: 'Variable',
+                orbit: '79.9 Years (Binary Pair)',
+                composition: 'Stellar Plasma',
+                desc: 'The closest star system to the Solar System, consisting of Alpha Centauri A, B, and Proxima Centauri.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(300, 40, -100),
+                radius: 5.0,
+                color: 0xffddaa
+            },
+            {
+                id: 'sirius',
+                name: 'Sirius (Alpha Canis Majoris)',
+                category: 'Binary Star System (A1V + DA)',
+                scaleIndex: 2,
+                diameter: '2.4 Million km',
+                distance: '8.6 Light-Years',
+                rotation: '16 km/s',
+                orbit: '50.1 Years',
+                composition: 'Hydrogen Plasma',
+                desc: 'The brightest star in the night sky, twice as massive as the Sun.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(-400, -80, 250),
+                radius: 6.0,
+                color: 0xaaccff
+            },
+            {
+                id: 'betelgeuse',
+                name: 'Betelgeuse',
+                category: 'Red Supergiant',
+                scaleIndex: 2,
+                diameter: '1.2 Billion km (764x Sun)',
+                distance: '642.5 Light-Years',
+                rotation: '36 Years',
+                orbit: 'Galactic Path',
+                composition: 'Heavy Elements, Carbon, Oxygen',
+                desc: 'A massive semiregular variable red supergiant nearing the end of its life, expected to explode as a supernova.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(600, 200, -500),
+                radius: 14.0,
+                color: 0xff4411
+            },
+            {
+                id: 'orion-nebula',
+                name: 'Orion Nebula (M42)',
+                category: 'Diffuse Stellar Nursery Nebula',
+                scaleIndex: 2,
+                diameter: '24 Light-Years',
+                distance: '1,344 Light-Years',
+                rotation: 'N/A',
+                orbit: 'N/A',
+                composition: 'Ionized Hydrogen, Helium, Dust',
+                desc: 'One of the brightest nebulae visible to the naked eye, actively forming hundreds of new stars.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(-700, -150, -600),
+                radius: 20.0,
+                color: 0xff53e0
+            },
+            {
+                id: 'cygnus-x1',
+                name: 'Cygnus X-1 Black Hole',
+                category: 'Stellar-Mass Black Hole',
+                scaleIndex: 2,
+                diameter: '60 km Event Horizon',
+                distance: '6,070 Light-Years',
+                rotation: 'Near Speed of Light',
+                orbit: '5.6 Days (Binary System)',
+                composition: 'Singularity / Accretion Disk',
+                desc: 'A famous galactic X-ray source and one of the first confirmed black hole candidates.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(800, -300, 400),
+                radius: 8.0,
+                color: 0x9875ff
+            },
+
+            // SCALE 4: MILKY WAY GALAXY
+            {
+                id: 'milky-way-core',
+                name: 'Milky Way Galactic Center',
+                category: 'Galactic Nucleus (Sagittarius A*)',
+                scaleIndex: 3,
+                diameter: '100,000 Light-Years (Full Galaxy)',
+                distance: '26,000 Light-Years from Earth',
+                rotation: '230 Million Year Rotation Period',
+                orbit: 'Center of Local Group',
+                composition: 'Supermassive Black Hole, Billions of Stars',
+                desc: 'The supermassive black hole Sagittarius A* resides at the luminous core of our spiral galaxy.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(0, 0, 0),
+                radius: 35.0,
+                color: 0xffeedd
+            },
+
+            // SCALE 5: LOCAL GROUP
+            {
+                id: 'andromeda',
+                name: 'Andromeda Galaxy (M31)',
+                category: 'Barred Spiral Galaxy',
+                scaleIndex: 4,
+                diameter: '220,000 Light-Years',
+                distance: '2.5 Million Light-Years',
+                rotation: '220 km/s',
+                orbit: 'Approaching Milky Way at 110 km/s',
+                composition: '1 Trillion Stars',
+                desc: 'The largest galaxy in the Local Group, destined to merge with the Milky Way in approximately 4.5 billion years.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(2500, 800, -1200),
+                radius: 45.0,
+                color: 0x53e0ff
+            },
+            {
+                id: 'triangulum',
+                name: 'Triangulum Galaxy (M33)',
+                category: 'Spiral Galaxy',
+                scaleIndex: 4,
+                diameter: '60,000 Light-Years',
+                distance: '2.73 Million Light-Years',
+                rotation: '100 km/s',
+                orbit: 'Gravitationally Bound to Andromeda',
+                composition: '40 Billion Stars',
+                desc: 'The third-largest member of the Local Group of galaxies.',
+                status: 'VERIFIED SCIENTIFIC DATA',
+                position: new THREE.Vector3(-1800, -600, 2000),
+                radius: 25.0,
+                color: 0x9875ff
+            },
+
+            // SCALE 6: COSMIC WEB
+            {
+                id: 'laniakea',
+                name: 'Laniakea Supercluster',
+                category: 'Galaxy Supercluster Filament',
+                scaleIndex: 5,
+                diameter: '520 Million Light-Years',
+                distance: 'Local Supercluster Region',
+                rotation: 'Hubble Flow Movement',
+                orbit: 'Flowing toward Great Attractor',
+                composition: '100,000 Galaxies',
+                desc: 'The galaxy supercluster that is home to the Milky Way and approximately 100,000 other nearby galaxies.',
+                status: 'ESTIMATED / CONCEPTUAL MODEL',
+                position: new THREE.Vector3(0, 0, 0),
+                radius: 80.0,
+                color: 0x3d8bff
+            },
+
+            // SCALE 7: OBSERVABLE UNIVERSE
+            {
+                id: 'observable-universe',
+                name: 'Cosmic Microwave Background (CMB)',
+                category: 'Edge of Observable Universe',
+                scaleIndex: 6,
+                diameter: '93 Billion Light-Years',
+                distance: '46.5 Billion Light-Years Horizon',
+                rotation: 'Isotropic Cosmic Horizon',
+                orbit: 'N/A (Universal Boundary)',
+                composition: 'Primordial Thermal Radiation (2.725 K)',
+                desc: 'The oldest electromagnetic radiation in the universe, dating back to 380,000 years after the Big Bang.',
+                status: 'VERIFIED COSMOLOGICAL DATA',
+                position: new THREE.Vector3(0, 0, 0),
+                radius: 300.0,
+                color: 0xff8833
+            }
+        ];
+
+        /* -------------------------------------------------------------------------- */
+        /*                           PROCEDURAL TEXTURE ENGINE                         */
+        /* -------------------------------------------------------------------------- */
+        class TextureGenerator {
+            // Earth Texture Generator
+            static createEarthTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                // Deep Blue Ocean
+                ctx.fillStyle = '#0a1d3a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Continents (Procedural noise simulation)
+                ctx.fillStyle = '#225522';
+                for (let i = 0; i < 120; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.8 + canvas.height * 0.1;
+                    const r = Math.random() * 80 + 30;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Desert highlights
+                ctx.fillStyle = '#887744';
+                for (let i = 0; i < 40; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.6 + canvas.height * 0.2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.random() * 40 + 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Polar Ice Caps
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, 35);
+                ctx.fillRect(0, canvas.height - 35, canvas.width, 35);
+
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            // Gas Giant Texture Generator
+            static createGasGiantTexture(baseColorHex, stripeColorHex) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = baseColorHex;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Horizontal turbulent bands
+                ctx.fillStyle = stripeColorHex;
+                for (let y = 0; y < canvas.height; y += 12) {
+                    if (Math.random() > 0.4) {
+                        const h = Math.random() * 10 + 2;
+                        ctx.fillRect(0, y, canvas.width, h);
+                    }
+                }
+
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            // Sun Glow Texture
+            static createSunTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.2, '#ffcc00');
+                grad.addColorStop(0.5, '#ff4400');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 512, 512);
+
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            // CMB Cosmic Texture
+            static createCMBTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+
+                const imgData = ctx.createImageData(canvas.width, canvas.height);
+                for (let i = 0; i < imgData.data.length; i += 4) {
+                    const val = Math.random();
+                    if (val < 0.33) {
+                        imgData.data[i] = 200; imgData.data[i+1] = 50; imgData.data[i+2] = 20; // Red hot
+                    } else if (val < 0.66) {
+                        imgData.data[i] = 20; imgData.data[i+1] = 100; imgData.data[i+2] = 220; // Blue cold
+                    } else {
+                        imgData.data[i] = 220; imgData.data[i+1] = 160; imgData.data[i+2] = 40; // Yellow warm
+                    }
+                    imgData.data[i+3] = 255;
+                }
+                ctx.putImageData(imgData, 0, 0);
+
+                return new THREE.CanvasTexture(canvas);
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /*                           MAIN APPLICATION ARCHITECTURE                    */
+        /* -------------------------------------------------------------------------- */
+        class WebifyUniverseApp {
+            constructor() {
+                this.container = document.getElementById('canvas-container');
+                this.currentScale = 0; // 0..6
+                this.timeSpeed = 1.0;
+                this.isPaused = false;
+                this.showOrbits = true;
+                this.selectedObject = null;
+                this.isFreeFlight = false;
+                
+                // Flight mechanics parameters
+                this.flightMove = { forward: 0, right: 0, up: 0 };
+                this.flightSpeed = 2.0;
+
+                // Frame rate tracking
+                this.fps = 60;
+                this.lastFrameTime = performance.now();
+                this.frameCount = 0;
+
+                this.initEngine();
+                this.initAudio();
+                this.createStarfield();
+                this.buildAllScales();
+                this.initControls();
+                this.initRaycasting();
+                this.initUI();
+                this.animate();
+            }
+
+            /* Initialize Three.js Scene, Camera, and Renderer */
+            initEngine() {
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.FogExp2(0x03050b, 0.0003);
+
+                this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 50000);
+                this.camera.position.set(0, 5, 12);
+
+                try {
+                    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+                } catch (e) {
+                    document.getElementById('webgl-error').classList.remove('hidden');
+                    return;
+                }
+
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.2;
+                this.container.appendChild(this.renderer.domElement);
+
+                // Orbit Controls
+                this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.maxDistance = 10000;
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+                this.scene.add(ambientLight);
+
+                const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                sunLight.position.set(50, 20, 50);
+                this.scene.add(sunLight);
+
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+
+            /* Ambient Audio Synthesizer (Web Audio API) */
+            initAudio() {
+                this.audioCtx = null;
+                this.isSoundPlaying = false;
+
+                document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+                    if (!this.audioCtx) {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        this.osc = this.audioCtx.createOscillator();
+                        this.gain = this.audioCtx.createGain();
+                        
+                        this.osc.type = 'sine';
+                        this.osc.frequency.setValueAtTime(55, this.audioCtx.currentTime); // Low A drone
+                        this.gain.gain.setValueAtTime(0.05, this.audioCtx.currentTime);
+                        
+                        this.osc.connect(this.gain);
+                        this.gain.connect(this.audioCtx.destination);
+                        this.osc.start();
+                        this.isSoundPlaying = true;
+                        document.getElementById('sound-icon').setAttribute('data-lucide', 'volume-2');
+                    } else {
+                        if (this.isSoundPlaying) {
+                            this.gain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                            this.isSoundPlaying = false;
+                            document.getElementById('sound-icon').setAttribute('data-lucide', 'volume-x');
+                        } else {
+                            this.gain.gain.setValueAtTime(0.05, this.audioCtx.currentTime);
+                            this.isSoundPlaying = true;
+                            document.getElementById('sound-icon').setAttribute('data-lucide', 'volume-2');
+                        }
+                    }
+                    lucide.createIcons();
+                });
+            }
+
+            /* Global Background Starfield */
+            createStarfield() {
+                const count = 8000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+                const colors = new Float32Array(count * 3);
+
+                for (let i = 0; i < count; i++) {
+                    const r = 2000 + Math.random() * 8000;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+
+                    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = r * Math.cos(phi);
+
+                    // Color variation (Blue, White, Yellow stars)
+                    const c = Math.random();
+                    if (c > 0.8) { colors[i*3] = 0.6; colors[i*3+1] = 0.8; colors[i*3+2] = 1.0; }
+                    else if (c > 0.5) { colors[i*3] = 1.0; colors[i*3+1] = 1.0; colors[i*3+2] = 0.9; }
+                    else { colors[i*3] = 1.0; colors[i*3+1] = 0.7; colors[i*3+2] = 0.5; }
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const material = new THREE.PointsMaterial({
+                    size: 2.0,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.85
+                });
+
+                this.starfield = new THREE.Points(geometry, material);
+                this.scene.add(this.starfield);
+            }
+
+            /* Build Scene Objects for all 7 Cosmic Scales */
+            buildAllScales() {
+                this.scaleGroups = [];
+                this.interactiveMeshes = [];
+                this.orbitLines = [];
+
+                for (let i = 0; i < 7; i++) {
+                    const group = new THREE.Group();
+                    group.visible = (i === 0); // Only Scale 0 visible initially
+                    this.scene.add(group);
+                    this.scaleGroups.push(group);
+                }
+
+                // --- SCALE 0: EARTH & MOON ---
+                const earthGeo = new THREE.SphereGeometry(2.2, 64, 64);
+                const earthMat = new THREE.MeshStandardMaterial({
+                    map: TextureGenerator.createEarthTexture(),
+                    roughness: 0.6,
+                    metalness: 0.1
+                });
+                this.earthMesh = new THREE.Mesh(earthGeo, earthMat);
+                this.earthMesh.userData = CELESTIAL_DATA[0];
+                this.scaleGroups[0].add(this.earthMesh);
+                this.interactiveMeshes.push(this.earthMesh);
+
+                // Atmosphere Glow Shell
+                const atmoGeo = new THREE.SphereGeometry(2.3, 32, 32);
+                const atmoMat = new THREE.MeshBasicMaterial({
+                    color: 0x53e0ff,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.BackSide
+                });
+                this.scaleGroups[0].add(new THREE.Mesh(atmoGeo, atmoMat));
+
+                // Moon
+                const moonGeo = new THREE.SphereGeometry(0.6, 32, 32);
+                const moonMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.9 });
+                this.moonMesh = new THREE.Mesh(moonGeo, moonMat);
+                this.moonMesh.position.set(8, 0, 0);
+                this.moonMesh.userData = CELESTIAL_DATA[1];
+                this.scaleGroups[0].add(this.moonMesh);
+                this.interactiveMeshes.push(this.moonMesh);
+
+                // --- SCALE 1: SOLAR SYSTEM ---
+                // Sun
+                const sunGeo = new THREE.SphereGeometry(8.0, 32, 32);
+                const sunMat = new THREE.MeshBasicMaterial({ map: TextureGenerator.createSunTexture() });
+                const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+                sunMesh.userData = CELESTIAL_DATA[2];
+                this.scaleGroups[1].add(sunMesh);
+                this.interactiveMeshes.push(sunMesh);
+
+                // Planets (Mercury to Neptune)
+                this.planets = [];
+                const planetDataIndices = [3, 4, 0, 5, 6, 7, 8, 9];
+                const orbitRadii = [14, 22, 30, 38, 60, 85, 115, 145];
+
+                orbitRadii.forEach((r, idx) => {
+                    const data = CELESTIAL_DATA[planetDataIndices[idx]];
+                    const pGeo = new THREE.SphereGeometry(data.radius || 1.5, 32, 32);
+                    
+                    let pMat;
+                    if (data.id === 'jupiter' || data.id === 'saturn') {
+                        pMat = new THREE.MeshStandardMaterial({ map: TextureGenerator.createGasGiantTexture('#d8ca9d', '#886644') });
+                    } else {
+                        pMat = new THREE.MeshStandardMaterial({ color: data.color });
+                    }
+
+                    const pMesh = new THREE.Mesh(pGeo, pMat);
+                    pMesh.position.set(r, 0, 0);
+                    pMesh.userData = data;
+                    pMesh.userData.orbitRadius = r;
+                    pMesh.userData.angle = Math.random() * Math.PI * 2;
+                    pMesh.userData.speed = 0.02 / (idx + 1);
+
+                    // Saturn Rings
+                    if (data.id === 'saturn') {
+                        const ringGeo = new THREE.RingGeometry(5.0, 8.5, 32);
+                        const ringMat = new THREE.MeshBasicMaterial({ color: 0xead6b8, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+                        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                        ringMesh.rotation.x = Math.PI / 2;
+                        pMesh.add(ringMesh);
+                    }
+
+                    this.scaleGroups[1].add(pMesh);
+                    this.interactiveMeshes.push(pMesh);
+                    this.planets.push(pMesh);
+
+                    // Orbit Line Circle
+                    const orbitLineGeo = new THREE.BufferGeometry();
+                    const pts = [];
+                    for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+                        pts.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+                    }
+                    orbitLineGeo.setFromPoints(pts);
+                    const orbitLineMat = new THREE.LineBasicMaterial({ color: 0x53e0ff, transparent: true, opacity: 0.2 });
+                    const orbitLine = new THREE.Line(orbitLineGeo, orbitLineMat);
+                    this.scaleGroups[1].add(orbitLine);
+                    this.orbitLines.push(orbitLine);
+                });
+
+                // Instanced Asteroid Belt between Mars & Jupiter (r=46 to 54)
+                const asteroidCount = 1200;
+                const astGeo = new THREE.DodecahedronGeometry(0.2, 0);
+                const astMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.9 });
+                const astMesh = new THREE.InstancedMesh(astGeo, astMat, asteroidCount);
+                const dummy = new THREE.Object3D();
+
+                for (let i = 0; i < asteroidCount; i++) {
+                    const dist = 45 + Math.random() * 10;
+                    const angle = Math.random() * Math.PI * 2;
+                    dummy.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 2.5, Math.sin(angle) * dist);
+                    dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                    dummy.scale.setScalar(0.5 + Math.random() * 1.2);
+                    dummy.updateMatrix();
+                    astMesh.setMatrixAt(i, dummy.matrix);
+                }
+                this.scaleGroups[1].add(astMesh);
+
+                // --- SCALE 2: INTERSTELLAR NEIGHBORHOOD ---
+                const interstellarIndices = [10, 11, 12, 13, 14];
+                interstellarIndices.forEach(idx => {
+                    const data = CELESTIAL_DATA[idx];
+                    const starGeo = new THREE.SphereGeometry(data.radius, 32, 32);
+                    const starMat = new THREE.MeshBasicMaterial({ color: data.color });
+                    const starMesh = new THREE.Mesh(starGeo, starMat);
+                    starMesh.position.copy(data.position);
+                    starMesh.userData = data;
+
+                    this.scaleGroups[2].add(starMesh);
+                    this.interactiveMeshes.push(starMesh);
+                });
+
+                // --- SCALE 3: MILKY WAY GALAXY ---
+                const galaxyParticles = 25000;
+                const galGeo = new THREE.BufferGeometry();
+                const galPos = new Float32Array(galaxyParticles * 3);
+                const galCol = new Float32Array(galaxyParticles * 3);
+
+                for (let i = 0; i < galaxyParticles; i++) {
+                    const r = Math.pow(Math.random(), 2) * 400;
+                    const arms = 2;
+                    const theta = (i % arms) * ((2 * Math.PI) / arms) + r * 0.02 + (Math.random() - 0.5) * 0.5;
+
+                    galPos[i * 3] = r * Math.cos(theta);
+                    galPos[i * 3 + 1] = (Math.random() - 0.5) * (20 - r * 0.03);
+                    galPos[i * 3 + 2] = r * Math.sin(theta);
+
+                    galCol[i * 3] = 0.3 + (1 - r / 400) * 0.7;
+                    galCol[i * 3 + 1] = 0.5 + Math.random() * 0.3;
+                    galCol[i * 3 + 2] = 1.0;
+                }
+                galGeo.setAttribute('position', new THREE.BufferAttribute(galPos, 3));
+                galGeo.setAttribute('color', new THREE.BufferAttribute(galCol, 3));
+
+                const galMat = new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.7 });
+                this.galaxyMesh = new THREE.Points(galGeo, galMat);
+                this.scaleGroups[3].add(this.galaxyMesh);
+
+                // Galactic Center Object
+                const coreGeo = new THREE.SphereGeometry(15, 32, 32);
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffeedd });
+                const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+                coreMesh.userData = CELESTIAL_DATA[15];
+                this.scaleGroups[3].add(coreMesh);
+                this.interactiveMeshes.push(coreMesh);
+
+                // --- SCALE 4: LOCAL GROUP GALAXIES ---
+                [16, 17].forEach(idx => {
+                    const data = CELESTIAL_DATA[idx];
+                    const galMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(data.radius, 32, 32),
+                        new THREE.MeshBasicMaterial({ color: data.color, wireframe: true })
+                    );
+                    galMesh.position.copy(data.position);
+                    galMesh.userData = data;
+                    this.scaleGroups[4].add(galMesh);
+                    this.interactiveMeshes.push(galMesh);
+                });
+
+                // --- SCALE 5: COSMIC WEB / LANIAKEA ---
+                const webPoints = 8000;
+                const webGeo = new THREE.BufferGeometry();
+                const webPos = new Float32Array(webPoints * 3);
+
+                for (let i = 0; i < webPoints; i++) {
+                    const t = Math.random() * Math.PI * 2;
+                    const u = Math.random() * 1000 - 500;
+                    webPos[i * 3] = u * Math.cos(t * 3);
+                    webPos[i * 3 + 1] = (Math.random() - 0.5) * 300;
+                    webPos[i * 3 + 2] = u * Math.sin(t * 2);
+                }
+                webGeo.setAttribute('position', new THREE.BufferAttribute(webPos, 3));
+                const webMat = new THREE.PointsMaterial({ size: 2.0, color: 0x53e0ff, transparent: true, opacity: 0.5 });
+                this.scaleGroups[5].add(new THREE.Points(webGeo, webMat));
+
+                // --- SCALE 6: OBSERVABLE UNIVERSE (CMB Sphere) ---
+                const cmbGeo = new THREE.SphereGeometry(1200, 64, 64);
+                const cmbMat = new THREE.MeshBasicMaterial({
+                    map: TextureGenerator.createCMBTexture(),
+                    side: THREE.BackSide,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const cmbSphere = new THREE.Mesh(cmbGeo, cmbMat);
+                cmbSphere.userData = CELESTIAL_DATA[19];
+                this.scaleGroups[6].add(cmbSphere);
+                this.interactiveMeshes.push(cmbSphere);
+            }
+
+            /* Set Active Visual Scale (0 to 6) */
+            setScale(scaleIdx) {
+                this.currentScale = scaleIdx;
+                this.scaleGroups.forEach((group, idx) => {
+                    group.visible = (idx === scaleIdx);
+                });
+
+                // Smooth camera refocus
+                this.controls.target.set(0, 0, 0);
+                const dists = [12, 250, 1500, 800, 4000, 1200, 2500];
+                this.camera.position.set(0, dists[scaleIdx] * 0.4, dists[scaleIdx]);
+                this.controls.update();
+
+                // Update UI Tags
+                const names = [
+                    'SCALE 1: EARTH & MOON',
+                    'SCALE 2: SOLAR SYSTEM',
+                    'SCALE 3: INTERSTELLAR NEIGHBORHOOD',
+                    'SCALE 4: MILKY WAY GALAXY',
+                    'SCALE 5: LOCAL GROUP GALAXIES',
+                    'SCALE 6: COSMIC WEB & LANIAKEA',
+                    'SCALE 7: OBSERVABLE UNIVERSE (CMB)'
+                ];
+                document.getElementById('scale-name').innerText = names[scaleIdx];
+
+                // Update scale quick chips UI
+                document.querySelectorAll('.scale-chip').forEach((btn, idx) => {
+                    if (idx === scaleIdx) {
+                        btn.className = "scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap bg-space-blue text-white font-semibold";
+                    } else {
+                        btn.className = "scale-chip px-3 py-1.5 rounded-xl transition-all whitespace-nowrap text-slate-300 hover:text-white hover:bg-slate-800/50";
+                    }
+                });
+            }
+
+            /* Object Selection & Detail Panel */
+            selectObject(data) {
+                this.selectedObject = data;
+
+                document.getElementById('obj-title').innerText = data.name;
+                document.getElementById('obj-category').innerText = data.category;
+                document.getElementById('obj-diameter').innerText = data.diameter;
+                document.getElementById('obj-distance').innerText = data.distance;
+                document.getElementById('obj-rotation').innerText = data.rotation;
+                document.getElementById('obj-orbit').innerText = data.orbit;
+                document.getElementById('obj-desc').innerText = data.desc;
+                document.getElementById('obj-composition').innerText = data.composition;
+                document.getElementById('obj-status').innerText = data.status;
+
+                // Slide panel in
+                const panel = document.getElementById('info-panel');
+                panel.classList.remove('translate-x-full', 'opacity-0');
+            }
+
+            closeObjectPanel() {
+                const panel = document.getElementById('info-panel');
+                panel.classList.add('translate-x-full', 'opacity-0');
+            }
+
+            /* Raycaster Object Picking */
+            initRaycasting() {
+                this.raycaster = new THREE.Raycaster();
+                this.mouse = new THREE.Vector2();
+
+                window.addEventListener('click', (e) => {
+                    // Ignore clicks on UI elements
+                    if (e.target.closest('#main-hud') || e.target.closest('#nav-drawer') || e.target.closest('#landing-screen')) return;
+
+                    this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                    this.raycaster.setFromCamera(this.mouse, this.camera);
+                    const visibleMeshes = this.interactiveMeshes.filter(m => m.parent && m.parent.visible);
+                    const intersects = this.raycaster.intersectObjects(visibleMeshes, false);
+
+                    if (intersects.length > 0) {
+                        const clicked = intersects[0].object;
+                        if (clicked.userData && clicked.userData.name) {
+                            this.selectObject(clicked.userData);
+                        }
+                    }
+                });
+            }
+
+            /* Free Flight Keyboard / Joystick Controls */
+            initControls() {
+                window.addEventListener('keydown', (e) => {
+                    if (!this.isFreeFlight) return;
+                    switch (e.code) {
+                        case 'KeyW': this.flightMove.forward = 1; break;
+                        case 'KeyS': this.flightMove.forward = -1; break;
+                        case 'KeyA': this.flightMove.right = -1; break;
+                        case 'KeyD': this.flightMove.right = 1; break;
+                        case 'Space': this.flightMove.up = 1; break;
+                        case 'ShiftLeft': this.flightMove.up = -1; break;
+                    }
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    if (!this.isFreeFlight) return;
+                    switch (e.code) {
+                        case 'KeyW': case 'KeyS': this.flightMove.forward = 0; break;
+                        case 'KeyA': case 'KeyD': this.flightMove.right = 0; break;
+                        case 'Space': case 'ShiftLeft': this.flightMove.up = 0; break;
+                    }
+                });
+            }
+
+            /* UI Event Listeners & Binding */
+            initUI() {
+                // Enter Universe Button
+                document.getElementById('btn-enter').addEventListener('click', () => {
+                    const landing = document.getElementById('landing-screen');
+                    landing.classList.add('opacity-0', 'pointer-events-none');
+                    
+                    const hud = document.getElementById('main-hud');
+                    hud.classList.remove('opacity-0', 'pointer-events-none');
+
+                    // Animate camera entrance
+                    this.setScale(0);
+                });
+
+                // Scale Quick Chips
+                document.querySelectorAll('.scale-chip').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const s = parseInt(e.target.getAttribute('data-scale'));
+                        this.setScale(s);
+                    });
+                });
+
+                // Play / Pause Simulation
+                document.getElementById('btn-play-pause').addEventListener('click', () => {
+                    this.isPaused = !this.isPaused;
+                    const icon = document.getElementById('play-icon');
+                    icon.setAttribute('data-lucide', this.isPaused ? 'play' : 'pause');
+                    lucide.createIcons();
+                });
+
+                // Time Speed Slider
+                const speedSlider = document.getElementById('time-speed');
+                speedSlider.addEventListener('input', (e) => {
+                    this.timeSpeed = parseFloat(e.target.value);
+                    document.getElementById('speed-val').innerText = `${this.timeSpeed}x`;
+                });
+
+                // Orbit Lines Toggle
+                document.getElementById('btn-toggle-orbits').addEventListener('click', () => {
+                    this.showOrbits = !this.showOrbits;
+                    this.orbitLines.forEach(l => l.visible = this.showOrbits);
+                });
+
+                // Toggle Free Flight Mode
+                document.getElementById('btn-toggle-flight').addEventListener('click', () => {
+                    this.isFreeFlight = !this.isFreeFlight;
+                    this.controls.enabled = !this.isFreeFlight;
+
+                    const crosshair = document.getElementById('flight-crosshair');
+                    const mobileCtrl = document.getElementById('mobile-controls');
+
+                    if (this.isFreeFlight) {
+                        crosshair.classList.remove('hidden');
+                        mobileCtrl.classList.remove('hidden');
+                    } else {
+                        crosshair.classList.add('hidden');
+                        mobileCtrl.classList.add('hidden');
+                    }
+                });
+
+                // Reset Camera View
+                document.getElementById('btn-reset-view').addEventListener('click', () => {
+                    this.setScale(this.currentScale);
+                });
+
+                // Close Info Panel
+                document.getElementById('btn-close-info').addEventListener('click', () => {
+                    this.closeObjectPanel();
+                });
+
+                // Focus Selected Object
+                document.getElementById('btn-focus-obj').addEventListener('click', () => {
+                    if (!this.selectedObject) return;
+                    const targetMesh = this.interactiveMeshes.find(m => m.userData.id === this.selectedObject.id);
+                    if (targetMesh) {
+                        const worldPos = new THREE.Vector3();
+                        targetMesh.getWorldPosition(worldPos);
+                        
+                        this.controls.target.copy(worldPos);
+                        this.camera.position.set(worldPos.x, worldPos.y + targetMesh.userData.radius * 2, worldPos.z + targetMesh.userData.radius * 4);
+                        this.controls.update();
+                    }
+                });
+
+                // Nav Drawer Toggles
+                const drawer = document.getElementById('nav-drawer');
+                document.getElementById('btn-open-nav').addEventListener('click', () => {
+                    drawer.classList.remove('-translate-x-full');
+                });
+                document.getElementById('btn-close-nav').addEventListener('click', () => {
+                    drawer.classList.add('-translate-x-full');
+                });
+
+                // Build Navigator Drawer Object List
+                this.buildNavList();
+
+                // Real-time Object Search
+                document.getElementById('search-input').addEventListener('input', (e) => {
+                    this.filterNavList(e.target.value.toLowerCase());
+                });
+
+                // Toggle HUD Visibility
+                let hudVisible = true;
+                document.getElementById('btn-toggle-hud').addEventListener('click', () => {
+                    hudVisible = !hudVisible;
+                    const hudElements = document.querySelectorAll('header, footer, #info-panel');
+                    hudElements.forEach(el => el.style.opacity = hudVisible ? '1' : '0');
+                });
+
+                // Initialize Lucide Icons
+                lucide.createIcons();
+            }
+
+            /* Build Drawer Nav Items */
+            buildNavList() {
+                const container = document.getElementById('nav-objects-list');
+                container.innerHTML = '';
+
+                CELESTIAL_DATA.forEach(obj => {
+                    const item = document.createElement('div');
+                    item.className = "nav-item p-3 rounded-xl bg-space-navy/40 border border-slate-800 hover:border-space-cyan/50 hover:bg-space-navy cursor-pointer transition-all flex justify-between items-center";
+                    item.setAttribute('data-name', obj.name.toLowerCase());
+                    item.innerHTML = `
+                        <div>
+                            <div class="text-xs font-bold text-slate-100 font-orbitron">${obj.name}</div>
+                            <div class="text-[10px] font-mono text-space-cyan mt-0.5">${obj.category}</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        this.setScale(obj.scaleIndex);
+                        this.selectObject(obj);
+                        document.getElementById('nav-drawer').classList.add('-translate-x-full');
+                    });
+
+                    container.appendChild(item);
+                });
+                lucide.createIcons();
+            }
+
+            filterNavList(query) {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    const name = item.getAttribute('data-name');
+                    item.style.display = name.includes(query) ? 'flex' : 'none';
+                });
+            }
+
+            /* Window Resize Handler */
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            /* Main Animation Render Loop */
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                const now = performance.now();
+                const delta = (now - this.lastFrameTime) / 1000;
+                this.frameCount++;
+
+                if (now - this.lastFrameTime >= 1000) {
+                    this.fps = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastFrameTime = now;
+                    document.getElementById('fps-counter').innerText = this.fps;
+                }
+
+                // Celestial Animations (if not paused)
+                if (!this.isPaused) {
+                    // Earth & Moon rotation
+                    if (this.earthMesh) this.earthMesh.rotation.y += 0.005 * this.timeSpeed;
+                    if (this.moonMesh) {
+                        this.moonMesh.rotation.y += 0.002 * this.timeSpeed;
+                        // Moon orbit around Earth
+                        const time = Date.now() * 0.0005 * this.timeSpeed;
+                        this.moonMesh.position.x = Math.cos(time) * 8;
+                        this.moonMesh.position.z = Math.sin(time) * 8;
+                    }
+
+                    // Planetary Orbits
+                    if (this.planets) {
+                        this.planets.forEach(p => {
+                            p.userData.angle += p.userData.speed * 0.2 * this.timeSpeed;
+                            p.position.x = Math.cos(p.userData.angle) * p.userData.orbitRadius;
+                            p.position.z = Math.sin(p.userData.angle) * p.userData.orbitRadius;
+                            p.rotation.y += 0.01 * this.timeSpeed;
+                        });
+                    }
+
+                    // Galaxy Rotation
+                    if (this.galaxyMesh) {
+                        this.galaxyMesh.rotation.y += 0.0005 * this.timeSpeed;
+                    }
+                }
+
+                // Free Flight Movement Physics
+                if (this.isFreeFlight) {
+                    const dir = new THREE.Vector3();
+                    this.camera.getWorldDirection(dir);
+                    
+                    const side = new THREE.Vector3().crossVectors(this.camera.up, dir).normalize();
+
+                    if (this.flightMove.forward !== 0) {
+                        this.camera.position.addScaledVector(dir, this.flightMove.forward * this.flightSpeed);
+                    }
+                    if (this.flightMove.right !== 0) {
+                        this.camera.position.addScaledVector(side, -this.flightMove.right * this.flightSpeed);
+                    }
+                    if (this.flightMove.up !== 0) {
+                        this.camera.position.y += this.flightMove.up * this.flightSpeed;
+                    }
+                } else {
+                    this.controls.update();
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // Initialize App on Window Load
+        window.addEventListener('DOMContentLoaded', () => {
+            new WebifyUniverseApp();
+        });
+    </script>
+</body>
+</html>
